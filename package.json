@@ -1,0 +1,24 @@
+{
+  "name": "olms",
+  "description": "A lightweight, Bun-based proxy that connects any Ollama-compatible client to LMStudio.",
+  "module": "index.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "olms": "./index.ts"
+  },
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun run --watch index.ts",
+    "build": "bun build ./index.ts --compile --outfile ./dist/olms",
+    "test": "bun test tests/*.test.ts",
+    "test:integration": "bun test --timeout 60000 --env-file .env.test tests/integration/",
+    "test:all": "bun test tests/*.test.ts && bun test --timeout 60000 --env-file .env.test tests/integration/"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - os: ubuntu-latest
+            suffix: linux-amd64
+            bun-target: bun-linux-x64
+          - os: ubuntu-latest
+            suffix: linux-arm64
+            bun-target: bun-linux-arm64
+          - os: macos-latest
+            suffix: darwin-amd64
+            bun-target: bun-darwin-x64
+          - os: macos-latest
+            suffix: darwin-arm64
+            bun-target: bun-darwin-arm64
+          - os: windows-latest
+            suffix: windows-amd64.exe
+            bun-target: bun-windows-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Build Binary
+        run: bun build ./index.ts --compile --target=${{ matrix.target.bun-target }} --outfile=dist/olms-${{ matrix.target.suffix }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: olms-${{ matrix.target.suffix }}
+          path: dist/olms-${{ matrix.target.suffix }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

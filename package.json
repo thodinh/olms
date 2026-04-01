@@ -13,7 +13,10 @@
     "build": "bun build ./index.ts --compile --outfile ./dist/olms",
     "test": "bun test tests/*.test.ts",
     "test:integration": "bun test --timeout 60000 --env-file .env.test tests/integration/",
-    "test:all": "bun test tests/*.test.ts && bun test --timeout 60000 --env-file .env.test tests/integration/"
+    "test:all": "bun test tests/*.test.ts && bun test --timeout 60000 --env-file .env.test tests/integration/",
+    "release": "bun run build && npm version patch && git push --follow-tags",
+    "release:minor": "bun run build && npm version minor && git push --follow-tags",
+    "release:major": "bun run build && npm version major && git push --follow-tags"
   },
   "devDependencies": {
     "@types/bun": "latest"

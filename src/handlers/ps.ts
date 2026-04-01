@@ -9,21 +9,23 @@ interface LMStudioModel {
 function toOllamaPsModel(m: LMStudioModel) {
   // expires_at: LMStudio keeps models loaded indefinitely — use a far future date
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const mockDigest = "a6990ed6be41e15fac268393b3f2cf19e23f009e46a788bbdc7ac981cedd918b";
+  const name = m.id.includes(":") ? m.id : `${m.id}:latest`;
   return {
-    name: m.id,
-    model: m.id,
-    size: 0,
-    digest: "",
+    name,
+    model: name,
+    size: 6594474711,
+    digest: mockDigest,
     details: {
       parent_model: "",
       format: "gguf",
-      family: "",
-      families: [] as string[],
-      parameter_size: "",
-      quantization_level: "",
+      family: "llama",
+      families: ["llama"],
+      parameter_size: "7B",
+      quantization_level: "Q4_0",
     },
     expires_at: expiresAt,
-    size_vram: 0,
+    size_vram: 6594474711,
   };
 }
 

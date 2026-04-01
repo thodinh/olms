@@ -32,8 +32,11 @@ describe("GET /api/tags — handleTags()", () => {
     expect(first.name).toBe("llama3:8b");
     expect(first.model).toBe("llama3:8b");
     expect(typeof first.modified_at).toBe("string");
-    expect(first.size).toBe(0);
-    expect(first).toHaveProperty("details");
+    expect(first.size).toBe(6594474711);
+    expect(first.digest).toBe("a6990ed6be41e15fac268393b3f2cf19e23f009e46a788bbdc7ac981cedd918b");
+    expect((first.details as any).parent_model).toBe("");
+    expect((first.details as any).family).toBe("llama");
+    expect((first.details as any).families).toEqual(["llama"]);
   });
 
   it("handles an empty model list", async () => {

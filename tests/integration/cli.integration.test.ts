@@ -34,10 +34,11 @@ describe("CLI Binary Integration", () => {
     expect(text).toContain("--lmstudio-url");
   });
 
-  test("olms starts on a custom port via CLI argument", async () => {
+  test("olms starts on a custom port and version via CLI argument", async () => {
     const testPort = 19999;
+    const testVersion = "0.99.99";
 
-    serverProcess = spawn([binaryPath, "-p", testPort.toString()], {
+    serverProcess = spawn([binaryPath, "-p", testPort.toString(), "-v", testVersion], {
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -50,6 +51,7 @@ describe("CLI Binary Integration", () => {
 
       const body = await res.json() as Record<string, string>;
       expect(body).toHaveProperty("version");
+      expect(body.version).toBe(testVersion);
     } finally {
       serverProcess.kill();
       serverProcess = null;

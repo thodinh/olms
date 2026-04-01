@@ -13,20 +13,23 @@ interface LMStudioModelsResponse {
 }
 
 function toOllamaModel(m: LMStudioModel) {
+  const mockDigest = "a6990ed6be41e15fac268393b3f2cf19e23f009e46a788bbdc7ac981cedd918b";
+  const name = m.id.includes(":") ? m.id : `${m.id}:latest`;
   return {
-    name: m.id,
-    model: m.id,
+    name,
+    model: name,
     modified_at: m.created
       ? new Date(m.created * 1000).toISOString()
       : new Date().toISOString(),
-    size: 0,
-    digest: "",
+    size: 6594474711,
+    digest: mockDigest,
     details: {
+      parent_model: "",
       format: "gguf",
-      family: "",
-      families: [] as string[],
-      parameter_size: "",
-      quantization_level: "",
+      family: "llama",
+      families: ["llama"],
+      parameter_size: "7B",
+      quantization_level: "Q4_0",
     },
   };
 }

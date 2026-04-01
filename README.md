@@ -58,7 +58,7 @@ bunx olms
 npx olms
 ```
 
-You can also pass CLI arguments directly to the bridge: `--port`, `--lmstudio-url`, or `--help`.
+You can also pass CLI arguments directly to the bridge: `--port`, `--lmstudio-url`, `--ollama-version`, `--verbose`, or `--help`.
 
 **Method 2: Standalone Binary (macOS/Linux)**
 
@@ -94,7 +94,27 @@ LMSTUDIO_URL=http://localhost:1234/v1
 
 # Port to listen on (default: 11434 — Ollama's default)
 PORT=11434
+
+# Ollama version to report to clients connecting to the bridge (default: 0.19.0)
+OLLAMA_VERSION=0.19.0
+
+# Directory to save structured daily logs and zipped archives (default: undefined)
+LOG_DIR=./logs
+
+# Enable verbose logging — logs request/response bodies, upstream calls (default: false)
+VERBOSE=1
 ```
+
+### CLI Flags
+
+| Flag | Short | Description |
+|---|---|---|
+| `--port <port>` | `-p` | Port to run the bridge on (default: `11434`) |
+| `--lmstudio-url <url>` | `-u` | Upstream LMStudio server URL (default: `http://localhost:1234/v1`) |
+| `--ollama-version <ver>` | `-v` | Ollama version string reported to clients (default: `0.19.0`) |
+| `--log-dir <dir>` | | Directory to store rolling daily log files (e.g. `./logs`) |
+| `--verbose` | | Enable verbose logging with request/response details |
+| `--help` | `-h` | Show help message |
 
 ## Running Tests
 

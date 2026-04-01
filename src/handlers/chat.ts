@@ -18,12 +18,26 @@ export async function handleChat(req: Request): Promise<Response> {
     return errorResponse("Invalid JSON body", 400);
   }
 
+  if (!body.model) {
+    return errorResponse("model is required", 400);
+  }
+
+  // VSCode extensions often force append :latest to Ollama targets
+  if (body.model.endsWith(":latest")) {
+    body.model = body.model.replace(/:latest$/, "");
+  }
+
+  if (!body.messages || !Array.isArray(body.messages)) {
+    return errorResponse("messages is required and must be an array", 400);
+  }
+
   const shouldStream = body.stream !== false; // Ollama defaults to true
 
   const openaiReq = {
     model: body.model ?? "local-model",
     messages: body.messages ?? [],
     stream: shouldStream,
+    ...(shouldStream ? { stream_options: { include_usage: true } } : {}),
     ...mapOptions(body.options),
   };
 

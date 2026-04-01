@@ -17,6 +17,15 @@ describe("[integration] GET /api/version", () => {
   });
 });
 
+describe("[integration] GET /", () => {
+  it("returns 'Ollama is running'", async () => {
+    const res = await fetch(`${BRIDGE_URL}/`);
+    expect(res.status).toBe(200);
+    const bodyText = await res.text();
+    expect(bodyText).toBe("Ollama is running");
+  });
+});
+
 describe("[integration] GET /api/ps", () => {
   it("returns HTTP 200", async () => {
     const res = await fetch(`${BRIDGE_URL}/api/ps`);
@@ -101,5 +110,17 @@ describe("[integration] Unknown route", () => {
   it("GET /api/bogus returns 404", async () => {
     const res = await fetch(`${BRIDGE_URL}/api/bogus`);
     expect(res.status).toBe(404);
+  });
+});
+
+describe("[integration] OpenAI Compatibility route (/v1/*)", () => {
+  it("transparently proxies requests down to LMStudio", async () => {
+    const res = await fetch(`${BRIDGE_URL}/v1/models`);
+    expect(res.status).toBe(200);
+    const data = await res.json() as { object: string; data: unknown[] };
+    expect(data).toHaveProperty("data");
+    expect(Array.isArray(data.data)).toBe(true);
+    expect(data.object).toBe("list");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
   });
 });

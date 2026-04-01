@@ -2,7 +2,8 @@ import { LMSTUDIO_URL } from "../config.ts";
 import { withCors, errorResponse } from "../utils/cors.ts";
 
 interface ShowRequest {
-  model: string;
+  name?: string;
+  model?: string;
   verbose?: boolean;
 }
 
@@ -21,7 +22,9 @@ export async function handleShow(req: Request): Promise<Response> {
     return errorResponse("Invalid JSON body", 400);
   }
 
-  if (!body.model) {
+  // Ollama official API uses 'name', but some clients use 'model' — accept both
+  const modelName = body.name || body.model;
+  if (!modelName) {
     return errorResponse("model is required", 400);
   }
 
@@ -31,25 +34,31 @@ export async function handleShow(req: Request): Promise<Response> {
       return errorResponse(`LMStudio returned ${upstream.status}`, upstream.status);
     }
     const data = (await upstream.json()) as { data: LMStudioModel[] };
-    const found = data.data?.find((m) => m.id === body.model);
+    let found = data.data?.find((m) => m.id === modelName);
+
+    if (!found && modelName.endsWith(":latest")) {
+      const stripped = modelName.replace(/:latest$/, "");
+      found = data.data?.find((m) => m.id === stripped);
+    }
 
     if (!found) {
-      return errorResponse(`model '${body.model}' not found`, 404);
+      return errorResponse(`model '${modelName}' not found`, 404);
     }
 
     // Build an Ollama-compatible show response.
     // Many fields have no LMStudio equivalent so we use safe empty defaults.
     const showRes = {
+      license: "",
       modelfile: `# Model managed by LMStudio\nFROM ${found.id}\n`,
       parameters: "",
       template: "{{ .Prompt }}",
       details: {
         parent_model: "",
         format: "gguf",
-        family: "",
-        families: [] as string[],
-        parameter_size: "",
-        quantization_level: "",
+        family: "llama",
+        families: ["llama"],
+        parameter_size: "7B",
+        quantization_level: "Q4_0",
       },
       model_info: {
         "general.architecture": "",

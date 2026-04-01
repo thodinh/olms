@@ -125,4 +125,25 @@ describe("[integration] POST /api/chat — streaming", () => {
       expect(typeof chunk.created_at).toBe("string");
     }
   });
+
+  it("final chunk includes token usage fields when streaming", async () => {
+    const res = await fetch(`${BRIDGE_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: TEST_CHAT_MODEL,
+        messages: MESSAGES,
+        stream: true,
+        options: { num_predict: 10 },
+      }),
+    });
+    const text = await res.text();
+    const lines = text.trim().split("\n").filter(Boolean);
+    const lastLine = lines[lines.length - 1];
+    const finalChunk = JSON.parse(lastLine) as Record<string, unknown>;
+    
+    expect(finalChunk.done).toBe(true);
+    expect(typeof finalChunk.prompt_eval_count).toBe("number");
+    expect(typeof finalChunk.eval_count).toBe("number");
+  });
 });

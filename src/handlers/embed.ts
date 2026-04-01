@@ -26,6 +26,15 @@ export async function handleEmbed(req: Request, isLegacy: boolean): Promise<Resp
     return errorResponse("Invalid JSON body", 400);
   }
 
+  if (!body.model) {
+    return errorResponse("model is required", 400);
+  }
+
+  // VSCode extensions often force append :latest to Ollama targets
+  if (body.model.endsWith(":latest")) {
+    body.model = body.model.replace(/:latest$/, "");
+  }
+
   // Normalise input: legacy uses `prompt` (string), new API uses `input` (string | string[])
   let input: string | string[];
   if (isLegacy) {

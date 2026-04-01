@@ -1,7 +1,7 @@
 import { afterAll, beforeAll } from "bun:test";
 
 export const LMSTUDIO_URL = process.env.LMSTUDIO_URL ?? "http://localhost:11434/v1";
-export const BRIDGE_PORT = parseInt(process.env.PORT ?? "11435", 10);
+export const BRIDGE_PORT = 19998; // Hardcode to 19998 to guarantee no collisions
 export const BRIDGE_URL = `http://localhost:${BRIDGE_PORT}`;
 export const TEST_CHAT_MODEL = process.env.TEST_CHAT_MODEL ?? "qwen3.5-4b-mlx";
 export const TEST_EMBED_MODEL =
@@ -42,7 +42,7 @@ export function startBridge() {
     const { handlePs } = await import("../../src/handlers/ps.ts");
     const { handleShow } = await import("../../src/handlers/show.ts");
     const { handleNotSupported } = await import("../../src/handlers/notSupported.ts");
-    const { corsPreflightResponse, errorResponse } = await import("../../src/utils/cors.ts");
+    const { corsPreflightResponse, errorResponse, withCors } = await import("../../src/utils/cors.ts");
 
     server = Bun.serve({
       port: BRIDGE_PORT,
@@ -52,6 +52,34 @@ export function startBridge() {
         const pathname = url.pathname;
 
         if (method === "OPTIONS") return corsPreflightResponse();
+        if ((method === "GET" || method === "HEAD") && pathname === "/") {
+          return withCors(
+            new Response(method === "HEAD" ? null : "Ollama is running", {
+              headers: { "Content-Type": "text/plain" },
+            })
+          );
+        }
+
+        if (pathname.startsWith("/v1/")) {
+          const targetPath = pathname.replace(/^\/v1/, "") + url.search;
+          const targetUrl = process.env.LMSTUDIO_URL!.replace(/\/$/, "") + targetPath;
+          const headers = new Headers(req.headers);
+          headers.delete("host");
+          try {
+            const upstream = await fetch(targetUrl, {
+              method,
+              headers,
+              body: method !== "GET" && method !== "HEAD" ? req.body : undefined,
+            });
+            return withCors(new Response(upstream.body, {
+              status: upstream.status,
+              statusText: upstream.statusText,
+              headers: upstream.headers,
+            }));
+          } catch (err: any) {
+            return errorResponse("LMStudio unreachable: " + err.message, 502);
+          }
+        }
         if (method === "GET" && pathname === "/api/tags") return handleTags();
         if (method === "POST" && pathname === "/api/chat") return handleChat(req);
         if (method === "POST" && pathname === "/api/generate") return handleGenerate(req);

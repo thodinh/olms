@@ -42,9 +42,13 @@ describe("GET /api/ps — handlePs()", () => {
     for (const m of body.models) {
       expect(typeof m.name).toBe("string");
       expect(typeof m.model).toBe("string");
-      expect(typeof m.size).toBe("number");
-      expect(typeof m.size_vram).toBe("number");
+      expect(m.size).toBe(6594474711);
+      expect(m.size_vram).toBe(6594474711);
       expect(typeof m.expires_at).toBe("string");
+      expect(m.digest).toBe("a6990ed6be41e15fac268393b3f2cf19e23f009e46a788bbdc7ac981cedd918b");
+      expect((m.details as any).parent_model).toBe("");
+      expect((m.details as any).family).toBe("llama");
+      expect((m.details as any).families).toEqual(["llama"]);
       expect(m).toHaveProperty("details");
     }
   });

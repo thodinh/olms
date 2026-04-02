@@ -2,6 +2,7 @@ import { LMSTUDIO_URL } from "../config.ts";
 import { mapOptions, type OllamaOptions } from "../mapOptions.ts";
 import { withCors, errorResponse } from "../utils/cors.ts";
 import { convertStream } from "../utils/streamConverter.ts";
+import { stripTag } from "../utils/modelName.ts";
 
 interface OllamaChatRequest {
   model: string;
@@ -22,10 +23,7 @@ export async function handleChat(req: Request): Promise<Response> {
     return errorResponse("model is required", 400);
   }
 
-  // VSCode extensions often force append :latest to Ollama targets
-  if (body.model.endsWith(":latest")) {
-    body.model = body.model.replace(/:latest$/, "");
-  }
+  body.model = stripTag(body.model);
 
   if (!body.messages || !Array.isArray(body.messages)) {
     return errorResponse("messages is required and must be an array", 400);

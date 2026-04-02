@@ -1,6 +1,6 @@
 import { afterAll, beforeAll } from "bun:test";
 
-export const LMSTUDIO_URL = process.env.LMSTUDIO_URL ?? "http://localhost:11434/v1";
+export const LMSTUDIO_URL = process.env.LMSTUDIO_URL ?? "http://localhost:1234/v1";
 export const BRIDGE_PORT = 19998; // Hardcode to 19998 to guarantee no collisions
 export const BRIDGE_URL = `http://localhost:${BRIDGE_PORT}`;
 export const TEST_CHAT_MODEL = process.env.TEST_CHAT_MODEL ?? "qwen3.5-4b-mlx";

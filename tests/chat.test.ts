@@ -86,6 +86,27 @@ describe("POST /api/chat — handleChat() [non-streaming]", () => {
     const res = await handleChat(req);
     expect(res.status).toBe(400);
   });
+
+  it("strips any tag from model name before forwarding", async () => {
+    let capturedBody: Record<string, unknown> = {};
+
+    globalThis.fetch = mock(async (_url: string | Request | URL, init?: RequestInit) => {
+      capturedBody = JSON.parse(init?.body as string);
+      return new Response(JSON.stringify(fakeOpenAIChat()), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    // :latest
+    await handleChat(makeReq({ model: "qwen3-coder:latest", messages: [], stream: false }));
+    expect(capturedBody.model).toBe("qwen3-coder");
+
+    // :8b  
+    await handleChat(makeReq({ model: "llama3:8b", messages: [], stream: false }));
+    expect(capturedBody.model).toBe("llama3");
+
+    // no tag — should stay unchanged
+    await handleChat(makeReq({ model: "qwen3.5-4b-mlx", messages: [], stream: false }));
+    expect(capturedBody.model).toBe("qwen3.5-4b-mlx");
+  });
 });
 
 describe("POST /api/chat — handleChat() [streaming]", () => {

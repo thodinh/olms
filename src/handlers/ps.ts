@@ -10,7 +10,7 @@ function toOllamaPsModel(m: LMStudioModel) {
   // expires_at: LMStudio keeps models loaded indefinitely — use a far future date
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   const mockDigest = "a6990ed6be41e15fac268393b3f2cf19e23f009e46a788bbdc7ac981cedd918b";
-  const name = m.id.includes(":") ? m.id : `${m.id}:latest`;
+  const name = m.id;
   return {
     name,
     model: name,

@@ -1,6 +1,7 @@
 import { LMSTUDIO_URL } from "../config.ts";
 import { mapOptions, type OllamaOptions } from "../mapOptions.ts";
 import { withCors, errorResponse } from "../utils/cors.ts";
+import { stripTag } from "../utils/modelName.ts";
 
 interface OllamaEmbedRequest {
   model: string;
@@ -30,10 +31,7 @@ export async function handleEmbed(req: Request, isLegacy: boolean): Promise<Resp
     return errorResponse("model is required", 400);
   }
 
-  // VSCode extensions often force append :latest to Ollama targets
-  if (body.model.endsWith(":latest")) {
-    body.model = body.model.replace(/:latest$/, "");
-  }
+  body.model = stripTag(body.model);
 
   // Normalise input: legacy uses `prompt` (string), new API uses `input` (string | string[])
   let input: string | string[];

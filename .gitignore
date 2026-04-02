@@ -3,3 +3,5 @@ node_modules
 dist
 .vscode
 test-logs
+dumps
+debug_proxy.js

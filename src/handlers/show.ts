@@ -1,5 +1,6 @@
 import { LMSTUDIO_URL } from "../config.ts";
 import { withCors, errorResponse } from "../utils/cors.ts";
+import { stripTag, inferCapabilities } from "../utils/modelName.ts";
 
 interface ShowRequest {
   name?: string;
@@ -34,10 +35,11 @@ export async function handleShow(req: Request): Promise<Response> {
       return errorResponse(`LMStudio returned ${upstream.status}`, upstream.status);
     }
     const data = (await upstream.json()) as { data: LMStudioModel[] };
+    // Try exact match first, then strip tag and retry
     let found = data.data?.find((m) => m.id === modelName);
 
-    if (!found && modelName.endsWith(":latest")) {
-      const stripped = modelName.replace(/:latest$/, "");
+    if (!found && modelName.includes(":")) {
+      const stripped = stripTag(modelName);
       found = data.data?.find((m) => m.id === stripped);
     }
 
@@ -60,6 +62,7 @@ export async function handleShow(req: Request): Promise<Response> {
         parameter_size: "7B",
         quantization_level: "Q4_0",
       },
+      capabilities: inferCapabilities(found.id),
       model_info: {
         "general.architecture": "",
         "general.basename": found.id,

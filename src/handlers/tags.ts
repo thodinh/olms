@@ -14,7 +14,7 @@ interface LMStudioModelsResponse {
 
 function toOllamaModel(m: LMStudioModel) {
   const mockDigest = "a6990ed6be41e15fac268393b3f2cf19e23f009e46a788bbdc7ac981cedd918b";
-  const name = m.id.includes(":") ? m.id : `${m.id}:latest`;
+  const name = m.id;
   return {
     name,
     model: name,

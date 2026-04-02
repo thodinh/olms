@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { PORT, LMSTUDIO_URL, VERBOSE } from "./src/config.ts";
+import { PORT, LMSTUDIO_URL, VERBOSE, POSITIONAL_ARGS } from "./src/config.ts";
 import { corsPreflightResponse, errorResponse, withCors } from "./src/utils/cors.ts";
 import { handleTags } from "./src/handlers/tags.ts";
 import { handleChat } from "./src/handlers/chat.ts";
@@ -12,13 +12,19 @@ import { handleNotSupported } from "./src/handlers/notSupported.ts";
 import { logRequest, logResponse, logUpstream, logDebug } from "./src/utils/logger.ts";
 import { stripTag } from "./src/utils/modelName.ts";
 
+if (POSITIONAL_ARGS[0] === "service") {
+  const { handleServiceCommand } = await import("./src/utils/service.ts");
+  handleServiceCommand(POSITIONAL_ARGS[1] ?? "");
+  process.exit(0);
+}
+
+
 const server = Bun.serve({
   port: PORT,
   async fetch(req) {
     const url = new URL(req.url);
     const { method, pathname } = { method: req.method, pathname: url.pathname };
 
-    // For POST requests in verbose mode, clone and parse the body for logging
     let requestBody: unknown;
     if (VERBOSE && (method === "POST" || method === "PUT" || method === "PATCH")) {
       try {
@@ -150,8 +156,6 @@ const server = Bun.serve({
       );
     }
 
-    // ── OpenAI Compatibility (Native Ollama /v1/ routes) ────────────────────
-
     if (pathname === "/v1/chat/completions" && method === "POST") {
       return handleAndLog(async () => {
         const targetPath = pathname.replace(/^\/v1/, "") + url.search;
@@ -236,8 +240,6 @@ const server = Bun.serve({
       }
     }
 
-    // ── Inference ────────────────────────────────────────────────────────────
-
     // GET /api/tags — list available models
     if ((method === "GET" || method === "HEAD") && pathname === "/api/tags") {
       return handleAndLog(() => handleTags());
@@ -263,8 +265,6 @@ const server = Bun.serve({
       return handleAndLog(() => handleEmbed(req, true));
     }
 
-    // ── Model info ───────────────────────────────────────────────────────────
-
     // GET /api/version — bridge version
     if ((method === "GET" || method === "HEAD") && pathname === "/api/version") {
       return handleAndLog(() => handleVersion());
@@ -279,8 +279,6 @@ const server = Bun.serve({
     if (method === "POST" && pathname === "/api/show") {
       return handleAndLog(() => handleShow(req));
     }
-
-    // ── Model management (not possible via LMStudio API → 501) ───────────────
 
     if (pathname === "/api/copy") {
       return handleAndLog(() => handleNotSupported("POST /api/copy"));

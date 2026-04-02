@@ -1,6 +1,6 @@
 import { parseArgs } from "util";
 
-let args: { values: Record<string, string | boolean | undefined> } = { values: {} };
+let args: { values: Record<string, string | boolean | undefined>; positionals: string[] } = { values: {}, positionals: [] };
 
 try {
   args = parseArgs({
@@ -23,6 +23,7 @@ try {
 if (args.values.help) {
   console.log(`
 Usage: olms [options]
+       olms service <install|uninstall|start|stop|status>
 
 Options:
   -p, --port <port>             Port to run the bridge on (default: 11434)
@@ -31,6 +32,13 @@ Options:
       --log-dir <dir>           Directory to save daily log rotation files (e.g., ./logs)
       --verbose                 Enable verbose logging (request/response details)
   -h, --help                    Show this help message
+
+Service Management:
+  olms service install          Register as a background service (auto-start on login)
+  olms service uninstall        Remove the background service
+  olms service start            Start the service now
+  olms service stop             Stop the service
+  olms service status           Check if the service is running
 `);
   process.exit(0);
 }
@@ -58,3 +66,6 @@ export const VERBOSE =
 export const LOG_DIR =
   (args.values["log-dir"] as string | undefined) ??
   process.env.LOG_DIR;
+
+export const POSITIONAL_ARGS = args.positionals;
+
